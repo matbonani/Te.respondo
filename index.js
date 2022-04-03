@@ -6,8 +6,9 @@ const bodyParser = require("body-parser");
 
 const connection = require('./database/database')
 
-
 const Pergunta = require("./database/Pergunta");
+
+const Resposta = require("./database/Resposta");
 
 // *************
 
@@ -38,8 +39,15 @@ app.use(bodyParser.json());
 //       ***  Rotas  ***    
 
 app.get("/", (req, res) => {
-    res.render("index",)
+    Pergunta.findAll({ raw: true, order:[
+        ['id', 'DESC'] // ASC = Crescente
+    ] }).then(perguntas => {
+        res.render("index", {
+            perguntas: perguntas
+        });
+    });
 });
+
 
 // rota que recebe os dados do formulario
 app.get("/perguntar", (req, res) => {
@@ -57,7 +65,33 @@ app.post("/salvarpergunta", (req, res) => {
     });
 });
 
+app.get("/pergunta/:id", (req, res) => {
+    var id = req.params.id;
 
+    Pergunta.findOne({
+        where: {id: id}
+    }).then(pergunta => {
+        if(pergunta != undefined){   // pergunta encontrada
+            res.render("pergunta", {
+                pergunta: pergunta
+            });
+        }else{                        // pergunta não encontrada
+            res.redirect("/");
+        }
+    });
+})
+
+
+app.post("/responder", (req, res ) => {
+    var corpo = req.body.corpo;
+    var perguntaId = req.body.pergunta;
+    Resposta.create({
+        corpo: corpo,
+        perguntaId: perguntaId
+    }).then(() => {
+        res.redirect("/pergunta/"+perguntaId);
+    });
+});
 
 
 //       ***  Informando a porta que a aplicação ira rodar  ***    
