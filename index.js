@@ -39,9 +39,12 @@ app.use(bodyParser.json());
 //       ***  Rotas  ***    
 
 app.get("/", (req, res) => {
-    Pergunta.findAll({ raw: true, order:[
+    Pergunta.findAll({ 
+        raw: true, 
+        order:[
         ['id', 'DESC'] // ASC = Crescente
-    ] }).then(perguntas => {
+        ]
+    }).then(perguntas => {
         res.render("index", {
             perguntas: perguntas
         });
@@ -49,11 +52,11 @@ app.get("/", (req, res) => {
 });
 
 
-// rota que recebe os dados do formulario
 app.get("/perguntar", (req, res) => {
     res.render("perguntar");
 })
 
+// rota que recebe os dados do formulario
 app.post("/salvarpergunta", (req, res) => {
     var titulo = req.body.titulo;
     var descricao = req.body.descricao;
@@ -72,9 +75,19 @@ app.get("/pergunta/:id", (req, res) => {
         where: {id: id}
     }).then(pergunta => {
         if(pergunta != undefined){   // pergunta encontrada
-            res.render("pergunta", {
-                pergunta: pergunta
+            
+            Resposta.findAll({
+                where: {perguntaId: pergunta.id},
+                order:[ 
+                    ['id', 'DESC']
+                ]
+            }).then(respostas => {
+                res.render("pergunta", {
+                    pergunta: pergunta,
+                    respostas: respostas
+                });
             });
+            
         }else{                        // pergunta não encontrada
             res.redirect("/");
         }
